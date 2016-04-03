@@ -503,7 +503,7 @@ public:
 //-----------------------------------------------------------------------------
 
 SceneViewer::SceneViewer(ImageUtils::FullScreenWidget *parent)
-	: QGLWidget(parent, touchProxy()), m_pressure(0), m_lastMousePos(0, 0), m_mouseButton(Qt::NoButton), m_foregroundDrawing(false), m_tabletEvent(false), m_buttonClicked(false), m_referenceMode(NORMAL_REFERENCE), m_previewMode(NO_PREVIEW), m_isMouseEntered(false), m_forceGlFlush(true), m_freezedStatus(NO_FREEZED), m_viewGrabImage(0), m_FPS(0), m_hRuler(0), m_vRuler(0), m_viewMode(SCENE_VIEWMODE), m_pos(0, 0), m_pan3D(TPointD(0, 0)), m_zoomScale3D(0.1), m_theta3D(20), m_phi3D(30), m_dpiScale(TPointD(1, 1)), m_compareSettings(), m_minZ(0), m_tableDLId(-1), m_groupIndexToBeEntered(-1), m_pixelSize(1), m_eraserPointerOn(false), m_backupTool(""), m_clipRect(), m_isPicking(false), m_current3DDevice(NONE), m_sideRasterPos(), m_topRasterPos(), m_toolDisableReason(""), m_editPreviewSubCamera(false)
+	: QGLWidget(parent, touchProxy()), m_pressure(0), m_lastMousePos(0, 0), m_mouseButton(Qt::NoButton), m_foregroundDrawing(false), m_tabletEvent(false), m_buttonClicked(false), m_referenceMode(NORMAL_REFERENCE), m_previewMode(NO_PREVIEW), m_isMouseEntered(false), m_forceGlFlush(true), m_freezedStatus(NO_FREEZED), m_viewGrabImage(0), m_FPS(0), m_hRuler(0), m_vRuler(0), m_updateCompressionTimer(0), m_viewMode(SCENE_VIEWMODE), m_pos(0, 0), m_pan3D(TPointD(0, 0)), m_zoomScale3D(0.1), m_theta3D(20), m_phi3D(30), m_dpiScale(TPointD(1, 1)), m_compareSettings(), m_minZ(0), m_tableDLId(-1), m_groupIndexToBeEntered(-1), m_pixelSize(1), m_eraserPointerOn(false), m_backupTool(""), m_clipRect(), m_isPicking(false), m_current3DDevice(NONE), m_sideRasterPos(), m_topRasterPos(), m_toolDisableReason(""), m_editPreviewSubCamera(false)
 {
 	assert(parent);
 
@@ -533,6 +533,11 @@ SceneViewer::SceneViewer(ImageUtils::FullScreenWidget *parent)
 
 	TGLDisplayListsManager::instance()->attachContext(l_displayListsSpaceId, context);
 	l_contexts.insert(context);
+
+	m_updateCompressionTimer = new QTimer(this);
+	m_updateCompressionTimer->setSingleShot(true);
+	connect(m_updateCompressionTimer, &QTimer::timeout,
+	        this, &SceneViewer::updateGL);
 
 	//iwsw commented out temporarily
 	//if (Preferences::instance()->isDoColorCorrectionByUsing3DLutEnabled() && Ghibli3DLutUtil::m_isValid)
@@ -2532,6 +2537,17 @@ void SceneViewer::invalidateToolStatus()
 			setCursor(Qt::ForbiddenCursor);
 	} else
 		setCursor(Qt::ForbiddenCursor);
+}
+
+//-----------------------------------------------------------------------------
+
+void SceneViewer::updateGL()
+{
+	if (m_updateCompressionTimer->isActive())
+		return;
+	
+	QGLWidget::updateGL();
+	m_updateCompressionTimer->start(5);
 }
 
 //-----------------------------------------------------------------------------

@@ -32,6 +32,7 @@
 
 class Ruler;
 class QMenu;
+class QTimer;
 class SceneViewer;
 
 namespace ImageUtils
@@ -93,6 +94,7 @@ class SceneViewer : public QGLWidget, public TTool::Viewer, public Previewer::Li
 	ImagePainter::CompareSettings m_compareSettings;
 	Ruler *m_hRuler;
 	Ruler *m_vRuler;
+	QTimer *m_updateCompressionTimer;
 
 	TPointD m_pan3D;
 	double m_zoomScale3D;
@@ -204,6 +206,7 @@ public:
 	void GLInvalidateAll();
 	void GLInvalidateRect(const TRectD &rect);
 	void invalidateToolStatus();
+	void updateGL();
 
 	TPointD getPan3D() const { return m_pan3D; }
 	double getZoomScale3D() const { return m_zoomScale3D; }
